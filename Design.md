@@ -21,6 +21,7 @@ OpenCDN Design
 6. 
 
 ### 守护模块
+* timer_mode 定时器(?)不知如何实现，思考一下。
 * purge_mode 用于刷新缓存<->节点purge
 * dns_mode 用于DNS记录变化<->dns服务器或者dnspod等dns服务
 * config_mode 用户配置文件变更<->节点配置文件
