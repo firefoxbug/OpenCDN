@@ -18,6 +18,15 @@ OpenCDN Design
 3. 擦除Cache(Purge模块)
 4. 节点流量采集(Flow模块)
 5. 节点健康状态检测(Hearbeat模块)
+6. 
+
+### 守护模块
+* purge_mode 用于刷新缓存<->节点purge
+* dns_mode 用于DNS记录变化<->dns服务器或者dnspod等dns服务
+* config_mode 用户配置文件变更<->节点配置文件
+* config_check_mode 用户配置文件版本检查<->节点版本信息
+* node_mode 用于定时检测节点<->节点
+* flow_mode 流量收集模块(不直接连外网，通过node_mode拉取传递过来)
 
 ### 如何执行一个Job
 
