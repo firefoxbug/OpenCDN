@@ -21,12 +21,12 @@ OpenCDN Design
 6. 
 
 ### 守护模块
-* timer_mode 定时器(?)不知如何实现，思考一下。
+* timer_mode 建立一个timer的表，把需要执行的模块和参数放入其中，然后让timer模块来轮询并且触发。
 * purge_mode 用于刷新缓存<->节点purge
 * dns_mode 用于DNS记录变化<->dns服务器或者dnspod等dns服务
 * config_mode 用户配置文件变更<->节点配置文件
-* config_check_mode 用户配置文件版本检查<->节点版本信息
-* node_mode 用于定时检测节点<->节点
+* config_check_mode(定时) 用户配置文件版本检查<->节点配置文件版本信息(如果有问题则调用config_mode进行同步或者调用node_mode进行节点排查)注：如果有问题不反复重试，等待定时器的下次检查。
+* node_mode(定时) 用于检测节点<->节点
 * flow_mode 流量收集模块(不直接连外网，通过node_mode拉取传递过来)
 
 ### 如何执行一个Job
