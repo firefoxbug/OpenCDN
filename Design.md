@@ -6,28 +6,28 @@ OpenCDN Design
 一个Job可以是一个Task，也可以是多个Task。
 
 1. 增加一个域名
-   1. 分发配置文件到CDN节点
+   1. 分发配置文件到CDN节点(ocdn_config)
    2. 节点reload
    3. 反向代理检测
-   4. 修改DNS记录
+   4. 修改DNS记录(ocdn_dns)
 2. 删除一个域名
-   1. 修改DNS记录
-   2. 删除配置文件
+   1. 修改DNS记录(ocdn_dns)
+   2. 删除配置文件(ocdn_config)
    3. 节点Roload
-   4. 擦除Cache
-3. 擦除Cache(Purge模块)
-4. 节点流量采集(Flow模块)
-5. 节点健康状态检测(Hearbeat模块)
+   4. 擦除Cache(ocdn_purge)
+3. 擦除Cache(ocdn_purge)
+4. 节点流量采集(ocdn_flow)
+5. 节点健康状态检测(ocdn_heartbeat)
 6. 
 
 ### 守护模块
-* timer_mode 定时器(?)不知如何实现，思考一下。
-* purge_mode 用于刷新缓存<->节点purge
+* ocdn_timer 建立一个timer的表，把需要执行的模块和参数放入其中，然后让timer模块来轮询并且触发。
+* ocdn_purge 用于刷新缓存<->节点purge
 * dns_mode 用于DNS记录变化<->dns服务器或者dnspod等dns服务
-* config_mode 用户配置文件变更<->节点配置文件
-* config_check_mode 用户配置文件版本检查<->节点版本信息
-* node_mode 用于定时检测节点<->节点
-* flow_mode 流量收集模块(不直接连外网，通过node_mode拉取传递过来)
+* ocdn_config 用户配置文件变更<->节点配置文件
+* ocdn_cfg_check(定时) 用户配置文件版本检查<->节点配置文件版本信息(如果有问题则调用ocdn_config进行同步或者调用ocdn_node进行节点排查)注：如果有问题不反复重试，等待定时器的下次检查。
+* ocdn_node(定时) 用于检测节点<->节点
+* ocdn_flow 流量收集模块(不直接连外网，通过ocdn_node拉取传递过来)
 
 ### 如何执行一个Job
 
