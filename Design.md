@@ -35,16 +35,16 @@ OpenCDN Design
       'Description': 'Add a domain',
       'TaskList'   : ['A','B','C','D'],
       'A':{
-    'Parameter': 'www.firefoxbug.com'
+         'Parameter': 'www.firefoxbug.com'
       },
       'B':{
-    'Parameter': ''
+         'Parameter': ''
       },
       'C':{
-    'Parameter': ''
+         'Parameter': ''
       },
       'D':{
-    'Parameter': ''
+        'Parameter': ''
       }
     }
     </pre>
@@ -55,13 +55,13 @@ OpenCDN Design
       'Description': 'Add a domain',
       'TaskList'   : ['B','C','D'],
       'B':{
-    'Parameter': 'www.firefoxbug.com'
+        'Parameter': 'www.firefoxbug.com'
       },
       'C':{
-    'Parameter': ''
+        'Parameter': ''
       },
       'D':{
-    'Parameter': ''
+        'Parameter': ''
       }
     }
     </pre>
