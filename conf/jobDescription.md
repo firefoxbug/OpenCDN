@@ -11,6 +11,7 @@
 | OCDN_DEL_DNS      | 撤销DNS
 | OCDN_PURGE  		| 擦除缓存
 
+<pre>
 {
 	'TaskName' : 'ADD_DOMAIN',	#Task名字
 	'Description' : 'add a Domain' # Job所描述
@@ -23,3 +24,4 @@
 		'Node':'192.168.1.1'
 	}
 }
+</pre>
