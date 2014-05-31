@@ -7,8 +7,8 @@ OpenCDN Design
 
 1. 增加一个域名
    1. 分发配置文件到CDN节点(ocdn_config)
-   2. 节点reload
-   3. 反向代理检测
+   2. 节点reload(ocdn_config)
+   3. 反向代理检测(ocdn_proxy)
    4. 修改DNS记录(ocdn_dns)
 2. 删除一个域名
    1. 修改DNS记录(ocdn_dns)
@@ -45,13 +45,19 @@ OpenCDN Design
       'Description': 'Add a domain',
       'TaskList'   : ['A','B','C','D'],
       'A':{
-         'Parameter': 'www.firefoxbug.com'
+         'Parameter': 'www.firefoxbug.com',
+         'failure2callback': 'ocdn_config.sync_conf_failure()',
+         'success2callback': ''
       },
       'B':{
-         'Parameter': ''
+         'Parameter': '',
+         'fail2callback': 'ocdn_config.reload_failure()',
+         'success2callback': ''
       },
       'C':{
          'Parameter': ''
+         'fail2callback': 'ocdn_proxy.reload_failure()',
+         'success2callback': ''
       },
       'D':{
         'Parameter': ''
@@ -84,3 +90,6 @@ OpenCDN Design
 2.  最后一个Task做完之后怎么通知JobMaster，并且相应的处理。
 
 ### 更多问题可以提出来，可以在上面直接修改，注意增加注释
+
+
+
