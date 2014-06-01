@@ -37,56 +37,32 @@ OpenCDN Design
 
 比如执行一个增加域名的Job，那么有几个Task组成一个有向图(DAG)，通过下面来执行。
 
-> 注：所有Task都已经运行，每个Task都有自己一个队列，所做的就是消费队列中的任务。 引入一个JobMaster的概念，JobMaster就是负责发起Job的。
+> 注：所有Task都已经运行，每个Task都有自己一个队列，所做的就是消费队列中的任务。
 
-1.  JobMaster要发起一个Job，比如指定一个增加域名的Job json描述文件，总共需要4个Task完成，比如分别是A,B,C,D
-    <pre>
-    {
-      'Description': 'Add a domain',
-      'TaskList'   : ['A','B','C','D'],
-      'A':{
-         'Parameter': 'www.firefoxbug.com',
-         'failure2callback': 'ocdn_config.sync_conf_failure()',
-         'success2callback': ''
-      },
-      'B':{
-         'Parameter': '',
-         'fail2callback': 'ocdn_config.reload_failure()',
-         'success2callback': ''
-      },
-      'C':{
-         'Parameter': ''
-         'fail2callback': 'ocdn_proxy.reload_failure()',
-         'success2callback': ''
-      },
-      'D':{
-        'Parameter': ''
-      }
-    }
-    </pre>
-2.  把上面的Job丢到TaskA所在的队列，TaskA取出，根据参数执行TaskA任务
-3.  如果TaskA执行成功则修改json文件为如下
-    <pre>
-    {
-      'Description': 'Add a domain',
-      'TaskList'   : ['B','C','D'],
-      'B':{
-        'Parameter': 'www.firefoxbug.com'
-      },
-      'C':{
-        'Parameter': ''
-      },
-      'D':{
-        'Parameter': ''
-      }
-    }
-    </pre>
-4.  TaskA根据TaskList把json文件丢到TaskB所在队列。
-5.  依次进行上面的循环直到TaskList为空。
-
+<pre>
+{
+  'TaskName' : 'ADD_DOMAIN',  #Task名字
+  'Description' : 'add a Domain' # Job所描述
+  'TaskList' : ['OCDN_PUSH_CONF','OCDN_RELOAD','OCDN_PROXY','OCDN_DNS'], #Job所有Task列表
+  'CurrentTask': 'OCDN_PUSH_CONF', #当前要执行的Task,
+  'TimeOut' : 10 #10秒,
+  'RunTimesLimit': #Task运行最大次数
+  {
+    'AlreadyRunTimes': 0, #当前执行该Task次数
+    'MaxRunTimes' : 10    #最多执行该Task次数
+  },
+  'Parameters': #参数
+  {
+    'Domain':'www.firefoxbug.com',
+    'Node':'192.168.1.1'
+  }
+}
+</pre>
 两个问题大家可以讨论下:
 
 1.  如果上面的任意一个Task失败了，怎么确保之前已经成功的Task不重做，并且又能让这次Task重新调度，以及还要保证这个Task不是一个死循环(每次都是失败就有问题了)
+解决方案：引入了RunTimesLimit这个配置，如果Task执行失败，可以重新调度，AlreadyRunTimes加1，直到超过MaxRunTimes后就判定Task为失败。
+
 2.  最后一个Task做完之后怎么通知JobMaster，并且相应的处理。
 
 ### 更多问题可以提出来，可以在上面直接修改，注意增加注释
