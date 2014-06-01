@@ -1,4 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
 
+# author : firefoxbug
+# E-Mail : wanghuafire@gmail.com
+# Blog   : www.firefoxbug.com
 
 class Queue(object):
 	"""OpenCDN Queue control"""
