@@ -17,7 +17,12 @@
 	'Description' : 'add a Domain' # Job所描述
 	'TaskList' : ['OCDN_PUSH_CONF','OCDN_RELOAD','OCDN_PROXY','OCDN_DNS'], #Job所有Task列表
 	'CurrentTask': 'OCDN_PUSH_CONF', #当前要执行的Task,
-	'TimeOut' : '10' #10秒
+	'TimeOut' : 10 #10秒,
+	'RunTimesLimit': #Task运行最大次数
+	{
+		'AlreadyRunTimes': 0,	#当前执行该Task次数
+		'MaxRunTimes' : 10 		#最多执行该Task次数
+	},
 	'Parameters': #参数
 	{
 		'Domain':'www.firefoxbug.com',
