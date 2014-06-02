@@ -1,8 +1,10 @@
 
 |  TaskName         |  含义       
 | ----------------- |:-------------:
-| OCDN_ADD_DOMAIN   | 添加节点
-| OCDN_DEL_DOMAIN   | 删除节点
+| OCDN_ADD_NODE   | 添加节点
+| OCDN_DEL_NODE   | 添加节点
+| OCDN_ADD_DOMAIN   | 添加域名
+| OCDN_DEL_DOMAIN   | 删除域名
 | OCDN_PUSH_CONF    | 分发配置文件
 | OCDN_REMOVE_CONF  | 删除配置文件 
 | OCDN_RELOAD       | 节点reload
