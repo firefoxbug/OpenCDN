@@ -32,6 +32,8 @@ class Purge(object):
 		while True:
 			current_task_json_str = Queue.get_task_from_queue(self.CURRENT_TASK_MODULE)
 			jobjson = JobJSON(current_task_json)
+
+			# Get task and parameters to run
 			(call_module, **arg) = jobjson.get_current_task_to_run()
 
 			# Run task
