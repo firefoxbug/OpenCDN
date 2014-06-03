@@ -95,3 +95,34 @@
 	}
 }
 </pre>
+
+### Purge cache
+<pre>
+{
+	'TaskName' : 'OCDN_PURGE',	#Task名字
+	'Description' : 'purge a Domain cache' # Job所描述
+	'TaskList' : ['OCDN_PURGE'], 
+	'CurrentTask': 'OCDN_PURGE', #当前要执行的Task,
+	'TimeOut' : 10 #10秒,
+	'RunTimesLimit': #Task运行最大次数
+	{
+		'AlreadyRunTimes': 0,	#当前执行该Task次数
+		'MaxRunTimes' : 10 		#最多执行该Task次数
+	},
+	'Parameters': #参数
+	{
+		{
+			'ip':'192.168.1.1',
+			'port':'80',
+			'domain':'www.firefoxbug.com',
+			'token':'821e57c57e8455e3e809e23df7bb6ce9'
+		}
+		{
+			'ip':'192.168.1.2',
+			'port':'80',
+			'domain':'www.firefoxbug.com',
+			'token':'821e57c57e8455e3e809e23df7bb6ce9'
+		}
+	}
+}
+</pre>
