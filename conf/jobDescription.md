@@ -14,9 +14,10 @@
 | OCDN_DEL_DNS      | 撤销DNS
 | OCDN_PURGE  		| 擦除缓存
 
+### 增加域名
 <pre>
 {
-	'TaskName' : 'ADD_DOMAIN',	#Task名字
+	'TaskName' : 'OCDN_ADD_DOMAIN',	#Task名字
 	'Description' : 'add a Domain' # Job所描述
 	'TaskList' : ['OCDN_PUSH_CONF','OCDN_RELOAD_NODE','OCDN_PROXY','OCDN_ADD_DNS'], #Job所有Task列表
 	'CurrentTask': 'OCDN_PUSH_CONF', #当前要执行的Task,
@@ -34,9 +35,10 @@
 }
 </pre>
 
+### 删除域名
 <pre>
 {
-	'TaskName' : 'DEL_DOMAIN',	#Task名字
+	'TaskName' : 'OCDN_DEL_DOMAIN',	#Task名字
 	'Description' : 'del a Domain' # Job所描述
 	'TaskList' : ['OCDN_DEL_DNS'，'OCDN_DEL_CONF','OCDN_RELOAD'], #Job所有Task列表
 	'CurrentTask': 'OCDN_PUSH_CONF', #当前要执行的Task,
@@ -54,9 +56,10 @@
 }
 </pre>
 
+### 增加节点
 <pre>
 {
-	'TaskName' : 'ADD_NODE',	#Task名字
+	'TaskName' : 'OCDN_ADD_NODE',	#Task名字
 	'Description' : 'del a Node' # Job所描述
 	'TaskList' : ['OCDN_ADD_NODE'，'OCDN_SYNC_CONF','OCDN_RELOAD_NODE'], #Job所有Task列表
 	'CurrentTask': 'OCDN_ADD_NODE', #当前要执行的Task,
@@ -73,9 +76,10 @@
 }
 </pre>
 
+### 撤销DNS
 <pre>
 {
-	'TaskName' : 'DISABLE DOMAIN NODE',	#Task名字，由于节点故障而撤回DNS
+	'TaskName' : 'OCDN_DEL_DNS',	#Task名字，由于节点故障而撤回DNS
 	'Description' : 'del a Node' # Job所描述
 	'TaskList' : ['OCDN_DEL_DNS'], #Job所有Task列表
 	'CurrentTask': 'OCDN_DEL_DNS', #当前要执行的Task,
