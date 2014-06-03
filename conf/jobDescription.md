@@ -5,7 +5,6 @@
 | OCDN_DEL_NODE   | 添加节点
 | OCDN_ADD_DOMAIN   | 添加域名
 | OCDN_DEL_DOMAIN   | 删除域名
-| OCDN_PUSH_CONF    | 分发配置文件
 | OCDN_REMOVE_CONF  | 删除配置文件 
 | OCDN_SYNC_CONF  | 同步配置文件 
 | OCDN_VER_CONF  | 查看配置文件的版本
