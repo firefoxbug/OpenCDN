@@ -8,6 +8,7 @@
 | OCDN_PUSH_CONF    | 分发配置文件
 | OCDN_REMOVE_CONF  | 删除配置文件 
 | OCDN_SYNC_CONF  | 同步配置文件 
+| OCDN_VER_CONF  | 查看配置文件的版本
 | OCDN_RELOAD_NODE       | 节点reload
 | OCDN_PROXY        | 节点proxy检测
 | OCDN_ADD_DNS      | 增加DNS
@@ -60,6 +61,25 @@
 	'Description' : 'del a Node' # Job所描述
 	'TaskList' : ['OCDN_ADD_NODE'，'OCDN_SYNC_CONF','OCDN_RELOAD_NODE'], #Job所有Task列表
 	'CurrentTask': 'OCDN_ADD_NODE', #当前要执行的Task,
+	'TimeOut' : 10 #10秒,
+	'RunTimesLimit': #Task运行最大次数
+	{
+		'AlreadyRunTimes': 0,	#当前执行该Task次数
+		'MaxRunTimes' : 10 		#最多执行该Task次数
+	},
+	'Parameters': #参数
+	{
+		'Node':'192.168.1.1'
+	}
+}
+</pre>
+
+<pre>
+{
+	'TaskName' : 'DISABLE DOMAIN NODE',	#Task名字，由于节点故障而撤回DNS
+	'Description' : 'del a Node' # Job所描述
+	'TaskList' : ['OCDN_DEL_DNS'], #Job所有Task列表
+	'CurrentTask': 'OCDN_DEL_DNS', #当前要执行的Task,
 	'TimeOut' : 10 #10秒,
 	'RunTimesLimit': #Task运行最大次数
 	{
