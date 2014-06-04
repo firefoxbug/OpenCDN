@@ -17,7 +17,7 @@ log level:
 def init_logger(logfile='test.log', stdout=True):
 	formatter = logging.Formatter('%(levelname)s [%(asctime)s] %(name)s:%(pathname)s line=%(lineno)d [message="%(message)s"]') 
 
-	logger = logging.getLogger('mylogger') 
+	logger = logging.getLogger('OpenCDN') 
 	logger.setLevel(logging.INFO) 
 
 	# write log into file
@@ -35,7 +35,7 @@ def init_logger(logfile='test.log', stdout=True):
 	return logger
  
 if __name__ == '__main__':
-	logger = init_logger(logfile='debug.log', stdout=False)
+	logger = init_logger(logfile='debug.log', stdout=True)
 	logger.info('this is a info log')
 	try:
 		print 1/0
