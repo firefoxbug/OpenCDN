@@ -18,7 +18,7 @@
 <pre>
 {
 	'TaskName' : 'OCDN_ADD_DOMAIN',	#Task名字
-	'Description' : 'add a Domain' # Job所描述
+	'Description' : 'add a Domain', # Job所描述
 	'TaskList' : ['OCDN_PUSH_CONF','OCDN_RELOAD_NODE','OCDN_PROXY','OCDN_ADD_DNS'], #Job所有Task列表
 	'CurrentTask': 'OCDN_PUSH_CONF', #当前要执行的Task,
 	'TimeOut' : 10 #10秒,
@@ -39,7 +39,7 @@
 <pre>
 {
 	'TaskName' : 'OCDN_DEL_DOMAIN',	#Task名字
-	'Description' : 'del a Domain' # Job所描述
+	'Description' : 'del a Domain', # Job所描述
 	'TaskList' : ['OCDN_DEL_DNS'，'OCDN_DEL_CONF','OCDN_RELOAD'], #Job所有Task列表
 	'CurrentTask': 'OCDN_PUSH_CONF', #当前要执行的Task,
 	'TimeOut' : 10 #10秒,
@@ -60,7 +60,7 @@
 <pre>
 {
 	'TaskName' : 'OCDN_ADD_NODE',	#Task名字
-	'Description' : 'del a Node' # Job所描述
+	'Description' : 'del a Node', # Job所描述
 	'TaskList' : ['OCDN_ADD_NODE'，'OCDN_SYNC_CONF','OCDN_RELOAD_NODE'], #Job所有Task列表
 	'CurrentTask': 'OCDN_ADD_NODE', #当前要执行的Task,
 	'TimeOut' : 10 #10秒,
@@ -80,7 +80,7 @@
 <pre>
 {
 	'TaskName' : 'OCDN_DEL_DNS',	#Task名字，由于节点故障而撤回DNS
-	'Description' : 'del a Node' # Job所描述
+	'Description' : 'del a Node', # Job所描述
 	'TaskList' : ['OCDN_DEL_DNS'], #Job所有Task列表
 	'CurrentTask': 'OCDN_DEL_DNS', #当前要执行的Task,
 	'TimeOut' : 10 #10秒,
@@ -91,7 +91,7 @@
 	},
 	'Parameters': #参数
 	{
-		'Node':'192.168.1.1'
+		['Node':'192.168.1.1']
 	}
 }
 </pre>
@@ -100,7 +100,7 @@
 <pre>
 {
 	'TaskName' : 'OCDN_PURGE',	#Task名字
-	'Description' : 'purge a Domain cache' # Job所描述
+	'Description' : 'purge a Domain cache',
 	'TaskList' : ['OCDN_PURGE'], 
 	'CurrentTask': 'OCDN_PURGE', #当前要执行的Task,
 	'TimeOut' : 10 #10秒,
@@ -112,16 +112,12 @@
 	'Parameters': #参数
 	{
 		[
-			'ip':'192.168.1.1',
-			'port':'80',
-			'domain':'www.firefoxbug.com',
-			'token':'821e57c57e8455e3e809e23df7bb6ce9'
-		],
-		[
-			'ip':'192.168.1.2',
-			'port':'80',
-			'domain':'www.firefoxbug.com',
-			'token':'821e57c57e8455e3e809e23df7bb6ce9'
+			{
+				'ip':'192.168.1.1',port':'80','domain':'www.firefoxbug.com',token':'821e57c57e8455e3e809e23df7bb6ce9'
+			},
+			{
+				'ip':'192.168.1.2',port':'80','domain':'www.firefoxbug.com',token':'821e57c57e8455e3e809e23df7bb6ce9'
+			}
 		]
 	}
 }
