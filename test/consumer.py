@@ -24,7 +24,7 @@ from OcdnLogger import init_logger
 class ConsumerTest(Consumer):
 	"""docstring for Consumer"""
 	def __init__(self, queue_ip='103.6.222.21', queue_port=4730):
-		super(ConsumerTest, self).__init__(queue_ip, queue_port)
+		super(ConsumerTest, self).__init__(queue_ip, queue_port,log='consumer.log')
 		self.task_name = 'consumer'
 		self.logger = init_logger(logfile='consumer_test.log', stdout=True)
 
