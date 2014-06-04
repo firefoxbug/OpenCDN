@@ -29,6 +29,7 @@ try:
 	import json
 except Exception, e:
 	import simplejson as json
+from OcdnLogger import init_logger
 
 class Producer(object):
 	"""OpenCDN Queue control: use gearman manage all tasks queue.
@@ -37,7 +38,7 @@ class Producer(object):
 	1. producer need to connect to gearman
 	2. produce tasks and put them into queue"""
 	def __init__(self, queue_ip='127.0.0.1', queue_port=4730):
-#		self.logger = init_logger(logfile='producer.log', stdout=True)
+#		self.conlog = init_logger(logfile='producer.log', stdout=True)
 		self.gearman_server_addr = "%s:%s"%(queue_ip,queue_port)
 		self.producer =None
 
@@ -56,20 +57,21 @@ class Consumer(gearman.GearmanWorker):
 	1. consumer need to register into gearman
 	2. get tasks from queue and dispatch them
 	"""
-	def __init__(self, queue_ip='127.0.0.1', queue_port=4730):
+	def __init__(self, queue_ip='127.0.0.1', queue_port=4730, log='consumer.log'):
 		self.gearman_server_addr = "%s:%s"%(queue_ip,queue_port)
 		super(Consumer, self).__init__([self.gearman_server_addr])
-#		self.logger = init_logger(logfile='consumer.log', stdout=True)
+		self.conlog = init_logger(logfile=log, stdout=True)
 
 	def register_task_callback(self, queue_name, callback):
 		"""Register callback module. once task arrive in the queue the callback 
 		will be called and dispatch the task
 		"""
+		msg = 'TaskModule:%s'%(queue_name)
 		try:
 			self.register_task(queue_name, callback)
+			self.conlog.info('%s: Register task into gearman success'%(msg))
 		except Exception, e:
-			error_msg = 'TaskModule:%s Callback:%s'%(queue_name, callback)
-			self.logger.error('Register task into gearman failed: %s'%(error_msg))
+			self.conlog.error('%s: Register task into gearman failed: %s'%(msg))
 
 	def start_worker(self):
 		"""Do tasks in a loop"""
@@ -82,12 +84,12 @@ class Consumer(gearman.GearmanWorker):
 		error_msg = '[FAILED] TaskModule: %s '%current_job.task
 		for item in exc_info[1]:
 			error_msg += str(item)
-		self.logger.error(error_msg)
+		self.conlog.error(error_msg)
 		return super(Consumer, self).on_job_exception(current_job, exc_info)
 
 	def on_job_complete(self, current_job, job_result):
-		message = '[SUCCESS] TaskModule: %s '%(current_job.task)
-		self.logger.info(message)
+#		message = '[SUCCESS] TaskModule: %s '%(current_job.task)
+		self.conlog.info(message)
 		return super(Consumer, self).send_job_complete(current_job, job_result)
 		
 	@classmethod
@@ -101,6 +103,6 @@ class Consumer(gearman.GearmanWorker):
 		except Exception, e:
 			print "ERROR %s"%(str(e))
 			return False
-			
+
 if __name__ == '__main__':
 	Consumer.push_task(queue_ip='103.6.222.21', queue_port=4730, queue_name='OCDNQUEUE', data='hello')
