@@ -111,18 +111,18 @@
 	},
 	'Parameters': #参数
 	{
-		{
+		[
 			'ip':'192.168.1.1',
 			'port':'80',
 			'domain':'www.firefoxbug.com',
 			'token':'821e57c57e8455e3e809e23df7bb6ce9'
-		}
-		{
+		],
+		[
 			'ip':'192.168.1.2',
 			'port':'80',
 			'domain':'www.firefoxbug.com',
 			'token':'821e57c57e8455e3e809e23df7bb6ce9'
-		}
+		]
 	}
 }
 </pre>
