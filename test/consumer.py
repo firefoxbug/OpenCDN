@@ -18,13 +18,15 @@ parent, bindir = os.path.split(os.path.dirname(os.path.abspath(sys.argv[0])))
 if os.path.exists(os.path.join(parent, 'lib')):
 	sys.path.insert(0, os.path.join(parent, 'lib'))
 
-from ocdn_queue import Consumer
+from OcdnQueue import Consumer
+from OcdnLogger import init_logger
 
 class ConsumerTest(Consumer):
 	"""docstring for Consumer"""
 	def __init__(self, queue_ip='103.6.222.21', queue_port=4730):
 		super(ConsumerTest, self).__init__(queue_ip, queue_port)
 		self.task_name = 'consumer'
+		self.logger = init_logger(logfile='consumer_test.log', stdout=True)
 
 	def run(self):
 		self.register_task_callback('OCDNQUEUE', self.do_task)
