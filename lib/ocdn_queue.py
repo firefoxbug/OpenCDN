@@ -31,57 +31,67 @@ try:
 except Exception, e:
 	import simplejson as json
 
-class OCDNQueue(gearman.GearmanWorker):
+class Producer(object):
 	"""OpenCDN Queue control: use gearman manage all tasks queue.
 
-	producer: produce tasks and put them into queue
-	consumer: get tasks from queue and dispatch them
-	"""
-	def __init__(self):
-		self.logger = init_logger(logfile='ocdn_queue.log')
-		self.producer = None
-		self.consumer = None
+	producer: produce tasks and put them into queue"""
+	def __init__(self, queue_ip='127.0.0.1', queue_port=4730):
+		self.logger = init_logger(logfile='producer.log', stdout=True)
+		self.gearman_server_addr = "%s:%s"%(queue_ip,queue_port)
+		self.producer =None
 
-	def producer_connect_queue(self, queue_ip='127.0.0.1', queue_port=4730):
+	def producer_connect_queue(self):
 		"""Producer try to connect to gearman server"""
 		try :
-			gearman_server_addr = "%s:%s"%(queue_ip,queue_port)
-			self.producer = gearman.GearmanClient([gearman_server_addr])
+			self.producer = gearman.GearmanClient([self.gearman_server_addr])
 		except Exception,e:
 			self.logger.error('Producer connect Gearman failured: %s'%(str(e)))
 			sys.exit(1)
 
-	def put_task_into_queue(queue_name, data, background=True):
+	def put_task_into_queue(self, queue_name, data, Background=True):
 		"""Put a task into a queue"""
-		self.producer.submit_job(queue_name,json.dumps(data),background)
-
-	def consumer_connect_queue(self, queue_ip='127.0.0.1', queue_port=4730):
-		"""Consumer try to connect to gearman server"""
 		try :
-			gearman_server_addr = "%s:%s"%(queue_ip,queue_port)
-			self.consumer = gearman.GearmanWorker([gearman_server_addr])
-		except Exception,e:
-			self.logger.error('consumer connect Gearman failured: %s'%(str(e)))
-			sys.exit(1)
+			self.producer.submit_job(queue_name, json.dumps(data), background=Background)
+		except Exception, e:
+			error_msg = 'TaskModule:%s TaskData:%s'%(queue_name, str(data))
+			self.logger.error('Put task into gearman failed: %s'%(error_msg))
 
-	def register_task(self, queue_name, callback_func):
-		self.consumer.register_task(queue_name, callback_func)
+class Consumer(gearman.GearmanWorker):
+	"""OpenCDN Queue control: use gearman manage all tasks queue.
+	
+	consumer: get tasks from queue and dispatch them
+	"""
+	def __init__(self, queue_ip='127.0.0.1', queue_port=4730):
+		self.gearman_server_addr = "%s:%s"%(queue_ip,queue_port)
+		super(Consumer, self).__init__([self.gearman_server_addr])
+		self.logger = init_logger(logfile='consumer.log', stdout=True)
+
+	def register_task_callback(self, queue_name, callback):
+		"""Register callback module. once task arrive in the queue the callback 
+		will be called and dispatch the task
+		"""
+		try:
+			self.register_task(queue_name, callback)
+		except Exception, e:
+			error_msg = 'TaskModule:%s Callback:%s'%(queue_name, callback)
+			self.logger.error('Register task into gearman failed: %s'%(error_msg))
 
 	def start_worker(self):
 		"""Do tasks in a loop"""
-		self.consumer.work()
+		self.work()
 
 	def on_job_execute(self, current_job):
-		return super(CustomGearmanWorker, self).on_job_execute(current_job)
+		return super(Consumer, self).on_job_execute(current_job)
 
 	def on_job_exception(self, current_job, exc_info):
-		error_msg = '%s ERROR '%current_job.task
+		error_msg = '[FAILED] TaskModule: %s '%current_job.task
 		for item in exc_info[1]:
 			error_msg += str(item)
 		self.logger.error(error_msg)
-		return super(CustomGearmanWorker, self).on_job_exception(current_job, exc_info)
+		return super(Consumer, self).on_job_exception(current_job, exc_info)
 
 	def on_job_complete(self, current_job, job_result):
-		message = '%s SUCCESS'%(current_job.task)
+		message = '[SUCCESS] TaskModule: %s '%(current_job.task)
 		self.logger.info(message)
-		return super(CustomGearmanWorker, self).send_job_complete(current_job, job_result)
+		return super(Consumer, self).send_job_complete(current_job, job_result)
+		
