@@ -34,7 +34,9 @@ except Exception, e:
 class Producer(object):
 	"""OpenCDN Queue control: use gearman manage all tasks queue.
 
-	producer: produce tasks and put them into queue"""
+	producer: 
+	1. producer need to connect to gearman
+	2. produce tasks and put them into queue"""
 	def __init__(self, queue_ip='127.0.0.1', queue_port=4730):
 		self.logger = init_logger(logfile='producer.log', stdout=True)
 		self.gearman_server_addr = "%s:%s"%(queue_ip,queue_port)
@@ -59,7 +61,9 @@ class Producer(object):
 class Consumer(gearman.GearmanWorker):
 	"""OpenCDN Queue control: use gearman manage all tasks queue.
 	
-	consumer: get tasks from queue and dispatch them
+	consumer: 
+	1. consumer need to register into gearman
+	2. get tasks from queue and dispatch them
 	"""
 	def __init__(self, queue_ip='127.0.0.1', queue_port=4730):
 		self.gearman_server_addr = "%s:%s"%(queue_ip,queue_port)
