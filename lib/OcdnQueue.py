@@ -81,7 +81,7 @@ class Consumer(gearman.GearmanWorker):
 		return super(Consumer, self).on_job_execute(current_job)
 
 	def on_job_exception(self, current_job, exc_info):
-		error_msg = '[FAILED] TaskModule: %s '%current_job.task
+		error_msg = 'TaskModule: %s '%current_job.task
 		for item in exc_info[1]:
 			error_msg += str(item)
 		self.conlog.error(error_msg)
@@ -92,17 +92,18 @@ class Consumer(gearman.GearmanWorker):
 #		self.conlog.info(message)
 		return super(Consumer, self).send_job_complete(current_job, job_result)
 		
-	@classmethod
+#	@classmethod
 	def push_task(self, queue_ip, queue_port, queue_name, data, Background=True):
 		"""Connect to queue and put task into queue"""
 		try:
 			self.gearman_server_addr = "%s:%s"%(queue_ip,queue_port)
 			self.producer = gearman.GearmanClient([self.gearman_server_addr])
 			self.producer.submit_job(queue_name, json.dumps(data), background=Background)
+			self.conlog.info('TaskModule: %s: put task into queue success'%(queue_name))
 			return True
 		except Exception, e:
-			print str(e)
-	#		self.conlog.error('Put task into TaskModule:%s Data:%s'%(queue_name, data))
+	#		print str(e)
+			self.conlog.error('TaskModule: %s: Put task into queue. Data:%s'%(queue_name, data))
 			return False
 
 if __name__ == '__main__':

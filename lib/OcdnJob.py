@@ -152,5 +152,9 @@ class OcdnJSON(object):
 		self.json_template['TaskName'] = TaskName
 		self.json_template['TaskList'] = TaskList
 		self.json_template['Parameters'] = Parameters
-		self.json_template['CurrentTask'] = TaskList[0]
+		try:
+			self.json_template['CurrentTask'] = TaskList[0]
+		except Exception, e:
+			return None
+		
 		return self.json_template
