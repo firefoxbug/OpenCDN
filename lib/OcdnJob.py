@@ -127,7 +127,7 @@ class JobManager(object):
 	def increase_task_run_times(self):
 		"""Because this task runed failured, set number 'AlreadyRunTimes' plus 1.
 		"""
-		self.jobjson['AlreadyRunTimes'] = self.AlreadyRunTimes + 1
+		self.jobjson['RunTimesLimit']['AlreadyRunTimes'] = self.AlreadyRunTimes + 1
 
 class OcdnJSON(object):
 	"""Create job json description"""

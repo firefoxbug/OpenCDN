@@ -15,7 +15,7 @@ log level:
 """
  
 def init_logger(logfile='test.log', logmodule='OpenCDN', stdout=True):
-	formatter = logging.Formatter('%(levelname)s [%(asctime)s] %(name)s:%(pathname)s line=%(lineno)d [message="%(message)s"]') 
+	formatter = logging.Formatter('%(levelname)s [%(asctime)s] [%(name)s]:%(pathname)s line=%(lineno)d [message="%(message)s"]') 
 
 	logger = logging.getLogger(logmodule) 
 	logger.setLevel(logging.INFO) 

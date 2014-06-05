@@ -57,10 +57,10 @@ class Consumer(gearman.GearmanWorker):
 	1. consumer need to register into gearman
 	2. get tasks from queue and dispatch them
 	"""
-	def __init__(self, queue_ip='127.0.0.1', queue_port=4730, log='consumer.log'):
+	def __init__(self, queue_ip='127.0.0.1', queue_port=4730, logfile='consumer.log'):
 		self.gearman_server_addr = "%s:%s"%(queue_ip,queue_port)
 		super(Consumer, self).__init__([self.gearman_server_addr])
-		self.conlog = init_logger(logfile=log, stdout=True)
+		self.conlog = init_logger(logfile=logfile, logmodule='CONSUMER', stdout=True)
 
 	def register_task_callback(self, queue_name, callback):
 		"""Register callback module. once task arrive in the queue the callback 
@@ -89,7 +89,7 @@ class Consumer(gearman.GearmanWorker):
 
 	def on_job_complete(self, current_job, job_result):
 #		message = '[SUCCESS] TaskModule: %s '%(current_job.task)
-		self.conlog.info(message)
+#		self.conlog.info(message)
 		return super(Consumer, self).send_job_complete(current_job, job_result)
 		
 	@classmethod
@@ -101,7 +101,8 @@ class Consumer(gearman.GearmanWorker):
 			self.producer.submit_job(queue_name, json.dumps(data), background=Background)
 			return True
 		except Exception, e:
-			print "ERROR %s"%(str(e))
+			print str(e)
+	#		self.conlog.error('Put task into TaskModule:%s Data:%s'%(queue_name, data))
 			return False
 
 if __name__ == '__main__':
