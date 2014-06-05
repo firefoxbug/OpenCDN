@@ -14,10 +14,10 @@ log level:
 	logging.CRITICAL
 """
  
-def init_logger(logfile='test.log', stdout=True):
+def init_logger(logfile='test.log', logmodule='OpenCDN', stdout=True):
 	formatter = logging.Formatter('%(levelname)s [%(asctime)s] %(name)s:%(pathname)s line=%(lineno)d [message="%(message)s"]') 
 
-	logger = logging.getLogger('OpenCDN') 
+	logger = logging.getLogger(logmodule) 
 	logger.setLevel(logging.INFO) 
 
 	# write log into file
