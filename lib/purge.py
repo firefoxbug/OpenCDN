@@ -35,6 +35,10 @@ class Purge(Consumer):
 	"""OpenCDN Domain cache Purge
 
 	1. Register task module into Consumer
+	2. Start work loop get task from queue
+	3. Do task if failed redo it until exceed MaxRunTimes
+	4. If task done succuss and job is finished then update mysql
+	4. If task done success but job is unfinished then put next running task into queue
 	"""
 	def __init__(self, queue_ip='103.6.222.21', queue_port=4730):
 		self.queue_ip = queue_ip
@@ -99,6 +103,12 @@ class Purge(Consumer):
 		print '-'*20, 'do task ', '-'*20
 		return True
 
+	def generate_task(self, parameters):
+		"""Parse parameters and generate task list
+		"""
+		for instance in parameters :
+			purge_url = "http://%s:%s/ocdn/purge/purge?token=%s&domain=%s"%(instance['ip'],instance['port'],instance['token'],instance['domain'])
+
 	def purge_node_failure(self, jobmanager):
 		"""do with purge one node cache failured, try to dispatch the task again."""
 		next_task_json = jobmanager.try_run_current_task_again()
@@ -109,7 +119,6 @@ class Purge(Consumer):
 			info_msg = 'TaskModule:%s. try to redo task. AlreadyRunTimes=%s'%(self.CURRENT_TASK_MODULE, next_task_json['RunTimesLimit']['AlreadyRunTimes'])
 			self.logger.info(info_msg)
 			self.put_task_into_queue(next_task_json['CurrentTask'], next_task_json)
-		
 		
 	def purge_job_success(self):
 		"""The purge job is excuted successfully"""
