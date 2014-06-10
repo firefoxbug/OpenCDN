@@ -83,7 +83,6 @@ class Purge(Consumer):
 			self.purge_job_success()
 			return "True"
 
-		
 		# Job still has tasks to dispatch
 		next_task_json = jobmanager.set_next_task_to_run()
 		if not next_task_json :
