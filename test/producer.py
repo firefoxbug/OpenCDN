@@ -57,8 +57,9 @@ def add_domain_test():
 	TaskName = 'OCDN_PURGE'
 	TaskList = ['OCDN_RELOAD_NODE','OCDN_PROXY','OCDN_ADD_DNS']
 	Parameters = []
-	Parameters.append({'ip':'192.168.1.1','port':'80','domain':'www.firefoxbug.com','token':'821e57c57e8455e3e809e23df7bb6ce9'})
-	Parameters.append({'ip':'192.168.1.2','port':'80','domain':'www.firefoxbug.com','token':'821e57c57e8455e3e809e23df7bb6ce9'})
+	for _ in range(0,10) :
+		Parameters.append({'ip':'192.168.1.1','port':'80','domain':'www.firefoxbug.com','token':'821e57c57e8455e3e809e23df7bb6ce9'})
+		Parameters.append({'ip':'192.168.1.2','port':'80','domain':'www.firefoxbug.com','token':'821e57c57e8455e3e809e23df7bb6ce9'})
 	
 	test = OcdnJSON()
 	job2do = test.create_job_json(TaskName, TaskList, Parameters)
