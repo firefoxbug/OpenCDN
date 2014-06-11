@@ -5,7 +5,7 @@
 # E-Mail : wanghuafire@gmail.com
 # Blog   : www.firefoxbug.com
 
-""" OpenCDN Task Moudle: do all tasks from all Task Moudle
+""" OpenCDN Task Moudle: Send url request and get response parallel.
 
 Dependenciys: gevent
 Notice: unknow gevent monkey how works
@@ -23,24 +23,28 @@ class RunTask(object):
 		super(RunTask, self).__init__()
 		pass
 
-	def fetchurl(self, task_num, url, Timeout=3):
-		"""Send http request and get response no-blocking"""
-		print('Process %s: %s start work' % (task_num, url))
+	def fetchurl(self, task_num, url, timeout=5):
+		"""Send http request and get response no-blocking
+
+		coroutine dispatched may cause all tasks run time increase, so set 
+		'timeout' larger then you expected.
+		"""
+#		print('Process %s: %s start work' % (task_num, url))
 		flag = None
 		status = None
-		error_msg = None
+		message = None
 		try :
-			req_obj = urllib2.Request(url,timeout=Timeout)
-			response = urllib2.urlopen(req_obj, timeout=5)
+			req_obj = urllib2.Request(url)
+			response = urllib2.urlopen(req_obj, timeout=timeout)
 			status = response.code
-			result = response.read()
+#			message = response.read()
 			flag = True
 		except Exception, e :
-			error_msg = str(e)
+			message = str(e)
 			flag = False
 
 		print('Process %s: %s %s' % (task_num, url, status))
-		return (task_num, flag, url, status, error_msg)
+		return (task_num, flag, url, status, message)
 
 	def run(self, url_list):
 		"""Gevent spawn multiply coroutines to run parallel
@@ -54,10 +58,20 @@ class RunTask(object):
 			jobs.append(gevent.spawn(self.fetchurl, i, url))
 			i += 1
 		gevent.joinall(jobs)
-		for job in jobs:
+		for job in jobs :
 			print job.value
+		return [ job.value for job in jobs]
 
 if __name__ == '__main__':
-	url_list = ['http://107.167.184.223/' for _ in range(0, 10)]
+	"""Test gevent"""
+	url_list = ['http://107.167.184.223/' for _ in range(0, 200)]
 	tasker = RunTask()
-	tasker.run(url_list)
+	result = tasker.run(url_list)
+	res = {'SUCCESS':0, 'FAILED':0}
+	for item in result :
+		if item[1] :
+			res['SUCCESS'] += 1
+		else :
+			res['FAILED'] += 1
+	print 'SUCCESS %s '%(res['SUCCESS'])
+	print 'FAILED %s'%(res['FAILED'])

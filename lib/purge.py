@@ -30,6 +30,7 @@ from OcdnQueue import Consumer
 from OcdnQueue import Producer
 from OcdnLogger import init_logger
 from OcdnJob import JobManager
+from OcdnTask import RunTask
 
 class Purge(Consumer):
 	"""OpenCDN Domain cache Purge
@@ -47,6 +48,7 @@ class Purge(Consumer):
 		self.logfile = os.path.join(parent,'logs','%s.log'%(self.CURRENT_TASK_MODULE))
 		super(Purge, self).__init__(queue_ip, queue_port, logfile=self.logfile)
 		self.logger = init_logger(logfile=self.logfile, logmodule=self.CURRENT_TASK_MODULE, stdout=True)
+		self.tasker = RunTask()
 
 	def run(self):
 		"""Register callback module and start a worker loop do tasks"""
@@ -77,7 +79,7 @@ class Purge(Consumer):
 			return "False"
 
 		self.logger.info('TaskModule:%s: do task success'%(self.CURRENT_TASK_MODULE))
-		# Job is over
+		# Job is finished
 		if jobmanager.is_job_finished():
 			self.logger.info('TaskModule:%s: Job is finished'%(self.CURRENT_TASK_MODULE))
 			self.purge_job_success()
@@ -97,9 +99,11 @@ class Purge(Consumer):
 		return False: job filed
 		return True: job success
 		"""
-#		for instance in task_args:
-#			print instance
-		print '-'*20, 'do task ', '-'*20
+		instance_list = []
+		for item in task_args:
+			purge_url = 'http://%s:%s/ocdn/purge/purge?token=%s&domain=%s'%(item['ip'], item['port'], item['token'], item['domain'])
+			instance_list.append(purge_url)
+		result = self.tasker.run(instance_list)
 		return True
 
 	def generate_task(self, parameters):
