@@ -43,7 +43,7 @@ class RunTask(object):
 			message = str(e)
 			flag = False
 
-		print('Process %s: %s %s' % (task_num, url, status))
+#		print('Process %s: %s %s' % (task_num, url, status))
 		return (task_num, flag, url, status, message)
 
 	def run(self, url_list):
@@ -58,8 +58,8 @@ class RunTask(object):
 			jobs.append(gevent.spawn(self.fetchurl, i, url))
 			i += 1
 		gevent.joinall(jobs)
-		for job in jobs :
-			print job.value
+#		for job in jobs :
+#			print job.value
 		return [ job.value for job in jobs]
 
 if __name__ == '__main__':

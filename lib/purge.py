@@ -49,6 +49,7 @@ class Purge(Consumer):
 		super(Purge, self).__init__(queue_ip, queue_port, logfile=self.logfile)
 		self.logger = init_logger(logfile=self.logfile, logmodule=self.CURRENT_TASK_MODULE, stdout=True)
 		self.tasker = RunTask()
+		self.taskid = None
 
 	def run(self):
 		"""Register callback module and start a worker loop do tasks"""
@@ -65,8 +66,9 @@ class Purge(Consumer):
 		data = job.data
 		current_job_json = json.loads(data)
 		jobmanager = JobManager(current_job_json)
+		self.taskid = jobmanager.get_task_id()
 		if not jobmanager.check_job_json_is_ok() :
-			self.logger.error('Parse job json failed.%s'%(job.data))
+			self.logger.error('TaskID:%s Parse job json failed. DATA:%s'%(self.taskid, job.data))
 			return "False"
 
 		# Get task and parameters to run
@@ -74,21 +76,22 @@ class Purge(Consumer):
 
 		# Run task
 		if self.purge_node(task_args) == False:
-			self.logger.error('TaskModule:%s do task failed. DATA:%s'%(self.CURRENT_TASK_MODULE, data))
-			self.purge_node_failure(jobmanager)
+			self.logger.error('TaskID:%s do task failed.'%(self.taskid))
+			next_task_json = jobmanager.try_run_current_task_again()
+			self.purge_node_failure(next_task_json)
 			return "False"
 
-		self.logger.info('TaskModule:%s: do task success'%(self.CURRENT_TASK_MODULE))
+		self.logger.info('TaskID:%s do task success'%(self.taskid))
 		# Job is finished
 		if jobmanager.is_job_finished():
-			self.logger.info('TaskModule:%s: Job is finished'%(self.CURRENT_TASK_MODULE))
+			self.logger.info('TaskID:%s Job is finished'%(self.taskid))
 			self.purge_job_success()
 			return "True"
 
 		# Job still has tasks to dispatch
 		next_task_json = jobmanager.set_next_task_to_run()
 		if not next_task_json :
-			self.logger.error('[FAILED] Job is unfished but no more task to do')
+			self.logger.error('TaskID:%s:[FAILED] Job is unfished but no more task to do'%(self.taskid))
 			return "False"
 		self.put_task_into_queue(next_task_json['CurrentTask'], next_task_json)
 		return "True"
@@ -104,22 +107,16 @@ class Purge(Consumer):
 			purge_url = 'http://%s:%s/ocdn/purge/purge?token=%s&domain=%s'%(item['ip'], item['port'], item['token'], item['domain'])
 			instance_list.append(purge_url)
 		result = self.tasker.run(instance_list)
-		return True
+#		print result
+		return False
 
-	def generate_task(self, parameters):
-		"""Parse parameters and generate task list
-		"""
-		for instance in parameters :
-			purge_url = "http://%s:%s/ocdn/purge/purge?token=%s&domain=%s"%(instance['ip'],instance['port'],instance['token'],instance['domain'])
-
-	def purge_node_failure(self, jobmanager):
+	def purge_node_failure(self, next_task_json):
 		"""do with purge one node cache failured, try to dispatch the task again."""
-		next_task_json = jobmanager.try_run_current_task_again()
 		if not next_task_json :
-			error_msg = '[FAILED] TaskModule:%s Exceed MaxRunTimes, no more dispatch'%(self.CURRENT_TASK_MODULE)
+			error_msg = 'TaskID:%s:[FAILED] Exceed MaxRunTimes, no more task to dispatch'%(self.taskid)
 			self.logger.error(error_msg)
 		else :
-			info_msg = 'TaskModule:%s. try to redo task. AlreadyRunTimes=%s'%(self.CURRENT_TASK_MODULE, next_task_json['RunTimesLimit']['AlreadyRunTimes'])
+			info_msg = 'TaskID:%s try to redo task. AlreadyRunTimes=%s'%(self.taskid, next_task_json['RunTimesLimit']['AlreadyRunTimes'])
 			self.logger.info(info_msg)
 			self.put_task_into_queue(next_task_json['CurrentTask'], next_task_json)
 		

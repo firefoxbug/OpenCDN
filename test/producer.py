@@ -28,7 +28,8 @@ class ProducerTest(Producer):
 	def __init__(self, queue_ip='103.6.222.21', queue_port=4730):
 		super(ProducerTest, self).__init__(queue_ip, queue_port)		
 		self.task_name = 'ProducerTest'
-		self.logger = init_logger(logfile='producer_test.log', stdout=True)
+		self.logfile = os.path.join(parent,'logs','producer.log')
+		self.logger = init_logger(logfile=self.logfile, stdout=True)
 		self.logger.info('Connect to gearman server %s:%s'%(queue_ip, queue_port))
 
 	def produce_job_loop(self, TaskModule, job2do):
@@ -40,14 +41,14 @@ def produce_job_tes():
 	Consumer.push_task(queue_ip='103.6.222.21', queue_port=4730, queue_name='OCDNQUEUE', data='hello')
 	
 def purge_test():
-	TaskName = 'OCDN_PURGE'
+	JobName = 'OCDN_PURGE'
 	TaskList = ['OCDN_PURGE']
 	Parameters = []
 	Parameters.append({'ip':'192.168.1.1','port':'80','domain':'www.firefoxbug.com','token':'821e57c57e8455e3e809e23df7bb6ce9'})
 	Parameters.append({'ip':'192.168.1.2','port':'80','domain':'www.firefoxbug.com','token':'821e57c57e8455e3e809e23df7bb6ce9'})
 	
 	test = OcdnJSON()
-	job2do = test.create_job_json(TaskName, TaskList, Parameters)
+	job2do = test.create_job_json(JobName, TaskList, Parameters)
 	pp.pprint(job2do)
 
 	producer = ProducerTest()
@@ -55,7 +56,7 @@ def purge_test():
 
 def add_domain_test():
 	TaskName = 'OCDN_PURGE'
-	TaskList = ['OCDN_RELOAD_NODE','OCDN_PROXY','OCDN_ADD_DNS']
+	TaskList = ['OCDN_PURGE','OCDN_PROXY','OCDN_ADD_DNS']
 	Parameters = []
 	for _ in range(0,10) :
 		Parameters.append({'ip':'192.168.1.1','port':'80','domain':'www.firefoxbug.com','token':'821e57c57e8455e3e809e23df7bb6ce9'})

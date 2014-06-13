@@ -9,6 +9,8 @@
 
 JobManagero: contorl job run 
 """
+import time
+import random
 
 class JobManager(object):
 	"""Manager a job's tasks run orger
@@ -40,6 +42,13 @@ class JobManager(object):
 		except Exception, e:
 			print str(e)
 			return False
+
+	def get_task_id(self):
+		"""Generate a Task ID
+
+		return <string>(YearMonthDayHourMinuteSecond)
+		"""
+		return time.strftime('%Y%m%d%H%M%S',time.localtime(time.time()))+str(random.randint(0,10))
 
 	def get_current_task_to_run(self):
 		"""Get current task is goting to run
@@ -133,7 +142,7 @@ class OcdnJSON(object):
 	"""Create job json description"""
 	def __init__(self):
 		self.json_template = {
-			'TaskName' : None,
+			'JobName' : None,
 			'Description' : 'OpenCDN',
 			'TaskList' : [], 
 			'CurrentTask': None, 
@@ -148,8 +157,8 @@ class OcdnJSON(object):
 			}
 		}
 
-	def create_job_json(self, TaskName, TaskList=[], Parameters=[]):
-		self.json_template['TaskName'] = TaskName
+	def create_job_json(self, JobName, TaskList=[], Parameters=[]):
+		self.json_template['JobName'] = JobName
 		self.json_template['TaskList'] = TaskList
 		self.json_template['Parameters'] = Parameters
 		try:
