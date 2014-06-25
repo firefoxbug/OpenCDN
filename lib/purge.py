@@ -28,45 +28,46 @@ parent, bindir = os.path.split(os.path.dirname(os.path.abspath(sys.argv[0])))
 if os.path.exists(os.path.join(parent, 'lib')):
 	sys.path.insert(0, os.path.join(parent, 'lib'))
 
-from OcdnQueue import Consumer
-from OcdnQueue import Producer
+from OcdnQueue import OcdnQueue
+from OcdnQueue import JsonCheck
 from OcdnLogger import init_logger
 from OcdnJob import JobManager
 from OcdnTask import RunTask
 
-class Purge(Consumer):
+class Purge():
 	"""OpenCDN Domain cache Purge
 
-	1. Register task module into Consumer
+	1. Register task module into Redis
 	2. Start work loop get task from queue
 	3. Do task if failed redo it until exceed MaxRunTimes
 	4. If task done succuss and job is finished then update mysql
 	4. If task done success but job is unfinished then put next running task into queue
 	"""
-	def __init__(self, queue_ip='103.6.222.21', queue_port=4730):
+	def __init__(self, queue_ip='my.opencdn.cc', queue_port=6379):
 		self.queue_ip = queue_ip
 		self.queue_port = queue_port
 		self.CURRENT_TASK_MODULE = 'OCDN_PURGE'
 		self.logfile = os.path.join(parent,'logs','%s.log'%(self.CURRENT_TASK_MODULE))
-		super(Purge, self).__init__(queue_ip, queue_port, logfile=self.logfile)
+		self.queue = OcdnQueue(self.queue_ip, self.queue_port)
 		self.logger = init_logger(logfile=self.logfile, logmodule=self.CURRENT_TASK_MODULE, stdout=True)
 		self.tasker = RunTask()
 		self.taskid = None
 
 	def run(self) :
-		"""Register callback module and start a worker loop do tasks"""
-		self.register_task_callback(self.CURRENT_TASK_MODULE, self.do_task)
-		self.start_worker()
+		"""Start a worker loop do tasks"""
+		while True:
+			data = self.queue.get(self.CURRENT_TASK_MODULE)
+			current_job_json = JsonCheck.decode(data)
+			if  current_job_json :
+				self.do_task(current_job_json)
 
-	def do_task(self, gearman_worker, job) :
+	def do_task(self, current_job_json) :
 		"""run a task may cause 3 results
 
 		1. task excuted failed
 		2. task excuted success and the job fished
 		3. task excuted success but the job unfished
 		"""
-		data = job.data
-		current_job_json = json.loads(data)
 		jobmanager = JobManager(current_job_json)
 		self.taskid = jobmanager.get_task_id()
 		if not jobmanager.check_job_json_is_ok() :
@@ -90,7 +91,7 @@ class Purge(Consumer):
 			self.purge_job_success()
 			return "True"
 
-		self.logger.info('TaskID:%s Job is finished.'%(self.taskid))
+		self.logger.info('TaskID:%s Job is unfinished, still has task to do.'%(self.taskid))
 		# Job still has tasks to dispatch
 		next_task_json = jobmanager.set_next_task_to_run()
 		if not next_task_json :
@@ -129,7 +130,8 @@ class Purge(Consumer):
 
 	def put_task_into_queue(self, queue_name, task_json):
 		"""Put a new task json into task queue"""
-		self.push_task(self.queue_ip, self.queue_port, str(queue_name), task_json)
+		task_json = json.dumps(task_json)
+		self.queue.put(str(queue_name), task_json)
 
 if __name__ == '__main__':
 	purge = Purge()

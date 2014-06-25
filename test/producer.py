@@ -10,36 +10,33 @@
 produce task and put task into gearman server
 """
 import sys
+import time
 import os
 parent, bindir = os.path.split(os.path.dirname(os.path.abspath(sys.argv[0])))
 if os.path.exists(os.path.join(parent, 'lib')):
 	sys.path.insert(0, os.path.join(parent, 'lib'))
 
-from OcdnQueue import Producer
-from OcdnQueue import Consumer
+from OcdnQueue import OcdnQueue
+from OcdnQueue import JsonCheck
 from OcdnLogger import init_logger
 from OcdnJob import OcdnJSON
 
 import pprint 
 pp = pprint.PrettyPrinter()
 
-class ProducerTest(Producer):
+class ProducerTest():
 	"""docstring for queue_test"""
-	def __init__(self, queue_ip='103.6.222.21', queue_port=4730):
-		super(ProducerTest, self).__init__(queue_ip, queue_port)		
+	def __init__(self, queue_ip='my.opencdn.cc', queue_port=6379):
+		self.queue = OcdnQueue(queue_ip, queue_port)
 		self.task_name = 'ProducerTest'
 		self.logfile = os.path.join(parent,'logs','producer.log')
 		self.logger = init_logger(logfile=self.logfile, stdout=True)
-		self.logger.info('Connect to gearman server %s:%s'%(queue_ip, queue_port))
+		self.logger.info('Connect to redis server %s:%s'%(queue_ip, queue_port))
 
 	def produce_job_loop(self, TaskModule, job2do):
-		self.connect_queue()
 		self.logger.info('Put task into TaskModule:%s'%(TaskModule))
-		self.put_task_into_queue(TaskModule, job2do, Background=False)
+		self.queue.put(TaskModule, job2do)
 
-def produce_job_tes():
-	Consumer.push_task(queue_ip='103.6.222.21', queue_port=4730, queue_name='OCDNQUEUE', data='hello')
-	
 def purge_test():
 	JobName = 'OCDN_PURGE'
 	TaskList = ['OCDN_PURGE']
@@ -67,7 +64,11 @@ def add_domain_test():
 	pp.pprint(job2do)
 
 	producer = ProducerTest()
-	producer.produce_job_loop(TaskName, job2do)
-			
+	job2do = JsonCheck.encode(job2do)
+	if job2do :
+		while True:
+			time.sleep(1)
+			producer.produce_job_loop(TaskName, job2do)
+
 if __name__ == '__main__':
 	add_domain_test()

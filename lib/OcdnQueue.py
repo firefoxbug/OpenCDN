@@ -40,9 +40,9 @@ class OcdnQueue(object):
 	>>> redis_q.put('KEY', 'Value')
 	>>> redis_q.get('KEY')
 	"""
-	def __init__(self, **redis_kwargs):
+	def __init__(self, queue_ip, queue_port):
 		"""The default connection parameters are: host='localhost', port=6379, db=0"""
-		self.__db= redis.Redis(**redis_kwargs)
+		self.__db= redis.Redis(host=queue_ip ,port=queue_port)
 
 	def qsize(self, key):
 		"""Return the approximate size of the queue."""
@@ -98,6 +98,25 @@ class OcdnQueue(object):
 	def get_nowait(self, key):
 		"""Equivalent to get(False)."""
 		return self.get(key, block=False)
+
+class JsonCheck(object):
+	"""docstring for OcdnJson"""
+	@classmethod
+	def encode(self, data):
+		try:
+			return json.dumps(data)
+		except Exception, e:
+			raise e
+			return None
+
+	@classmethod
+	def decode(self, data):
+		try:
+			return json.loads(data)
+		except Exception, e:
+			raise e
+			return None
+		
 
 import gearman
 class Producer(object):
