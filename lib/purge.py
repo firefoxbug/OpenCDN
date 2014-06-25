@@ -10,6 +10,8 @@
 OpenCDN module instruction : 
 	OCDN_PURGE
 
+1. Get task's json from own moudle task queue.
+2. Check task's json synx
 Purge API :
 	http://node_ip:node_port/ocdn/purge/purge?token=node_token&domain=node_domain
 """
@@ -51,12 +53,12 @@ class Purge(Consumer):
 		self.tasker = RunTask()
 		self.taskid = None
 
-	def run(self):
+	def run(self) :
 		"""Register callback module and start a worker loop do tasks"""
 		self.register_task_callback(self.CURRENT_TASK_MODULE, self.do_task)
 		self.start_worker()
 
-	def do_task(self, gearman_worker, job):
+	def do_task(self, gearman_worker, job) :
 		"""run a task may cause 3 results
 
 		1. task excuted failed
@@ -76,18 +78,19 @@ class Purge(Consumer):
 
 		# Run task
 		if self.purge_node(task_args) == False:
-			self.logger.error('TaskID:%s do task failed.'%(self.taskid))
+			self.logger.error('TaskID:%s Do task failed.'%(self.taskid))
 			next_task_json = jobmanager.try_run_current_task_again()
 			self.purge_node_failure(next_task_json)
 			return "False"
 
-		self.logger.info('TaskID:%s do task success'%(self.taskid))
+		self.logger.info('TaskID:%s Do task success.'%(self.taskid))
 		# Job is finished
 		if jobmanager.is_job_finished():
 			self.logger.info('TaskID:%s Job is finished'%(self.taskid))
 			self.purge_job_success()
 			return "True"
 
+		self.logger.info('TaskID:%s Job is finished.'%(self.taskid))
 		# Job still has tasks to dispatch
 		next_task_json = jobmanager.set_next_task_to_run()
 		if not next_task_json :
@@ -107,8 +110,8 @@ class Purge(Consumer):
 			purge_url = 'http://%s:%s/ocdn/purge/purge?token=%s&domain=%s'%(item['ip'], item['port'], item['token'], item['domain'])
 			instance_list.append(purge_url)
 		result = self.tasker.run(instance_list)
-#		print result
-		return False
+#       print result
+		return True
 
 	def purge_node_failure(self, next_task_json):
 		"""do with purge one node cache failured, try to dispatch the task again."""
@@ -116,7 +119,7 @@ class Purge(Consumer):
 			error_msg = 'TaskID:%s:[FAILED] Exceed MaxRunTimes, no more task to dispatch'%(self.taskid)
 			self.logger.error(error_msg)
 		else :
-			info_msg = 'TaskID:%s try to redo task. AlreadyRunTimes=%s'%(self.taskid, next_task_json['RunTimesLimit']['AlreadyRunTimes'])
+			info_msg = 'TaskID:%s Try to redo task. AlreadyRunTimes=%s'%(self.taskid, next_task_json['RunTimesLimit']['AlreadyRunTimes'])
 			self.logger.info(info_msg)
 			self.put_task_into_queue(next_task_json['CurrentTask'], next_task_json)
 		

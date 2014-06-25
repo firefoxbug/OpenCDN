@@ -24,13 +24,82 @@ Queue Task Name:
 
 """
 import sys
-import gearman
+
 try:
 	import json
 except Exception, e:
 	import simplejson as json
 from OcdnLogger import init_logger
 
+import redis
+
+class OcdnQueue(object):
+	"""Simple Queue with Redis Backend
+
+	>>> redis_q = RedisQueue(host='127.0.0.1')
+	>>> redis_q.put('KEY', 'Value')
+	>>> redis_q.get('KEY')
+	"""
+	def __init__(self, **redis_kwargs):
+		"""The default connection parameters are: host='localhost', port=6379, db=0"""
+		self.__db= redis.Redis(**redis_kwargs)
+
+	def qsize(self, key):
+		"""Return the approximate size of the queue."""
+		return self.__db.llen(key)
+
+	def empty(self):
+		"""Return True if the queue is empty, False otherwise."""
+		return self.qsize() == 0  
+
+	def put(self, key, item):
+		"""Put item into the queue."""
+		try :
+			self.__db.rpush(key, item)
+			return True
+		except Exception, e :
+			return False
+
+	def get(self, key ,block=True, timeout=None):
+		"""Remove and return an item from the queue.  
+
+		If optional args block is true and timeout is None (the default), block
+		if necessary until an item is available."""
+		try :
+			if block:
+				item = self.__db.blpop(key, timeout=timeout)
+			else:
+				item = self.__db.lpop(key)  
+
+			if item:
+				item = item[1]
+			return item
+		except Exception, e :
+			return None
+
+	def get_keys(self):
+		"""Get all queue keys from redis
+
+		return list
+		"""
+		try:
+			return self.__db.keys()
+		except Exception, e:
+			return []
+
+	def get_info(self):
+		"""Get detail queue information"""
+		print "%-20s 		%-10s\n"%("Queue", "Size")
+		queue_list = self.get_keys()
+		for key in queue_list :
+			size = self.qsize(key)
+			print "%-20s 		%-10s"%(key, size)
+			
+	def get_nowait(self, key):
+		"""Equivalent to get(False)."""
+		return self.get(key, block=False)
+
+import gearman
 class Producer(object):
 	"""OpenCDN Queue control: use gearman manage all tasks queue.
 
@@ -98,55 +167,12 @@ class Consumer(gearman.GearmanWorker):
 			self.gearman_server_addr = "%s:%s"%(queue_ip,queue_port)
 			self.producer = gearman.GearmanClient([self.gearman_server_addr])
 			self.producer.submit_job(queue_name, json.dumps(data), background=Background)
-			self.conlog.info('TaskModule: %s: put task into queue success'%(queue_name))
+			self.conlog.info('TaskModule:%s: Put new task into queue success'%(queue_name))
 			return True
 		except Exception, e:
 	#		print str(e)
-			self.conlog.error('TaskModule: %s: Put task into queue. Data:%s'%(queue_name, data))
+			self.conlog.error('TaskModule:%s: Put new task into queue. Data:%s'%(queue_name, data))
 			return False
-
-import redis
-
-class RedisQueue(object):
-	"""Simple Queue with Redis Backend
-
-	>>> redis_q = RedisQueue(host='127.0.0.1')
-	>>> redis_q.put('KEY', 'Value')
-	>>> redis_q.get('KEY')
-	"""
-	def __init__(self,**redis_kwargs):
-		"""The default connection parameters are: host='localhost', port=6379, db=0"""
-		self.__db= redis.Redis(**redis_kwargs)
-
-	def qsize(self,key):
-		"""Return the approximate size of the queue."""
-		return self.__db.llen(key)
-
-	def empty(self):
-		"""Return True if the queue is empty, False otherwise."""
-		return self.qsize() == 0  
-
-	def put(self,key,item):
-		"""Put item into the queue."""
-		self.__db.rpush(key, item)  
-
-	def get(self,key,block=True, timeout=None):
-		"""Remove and return an item from the queue.  
-
-		If optional args block is true and timeout is None (the default), block
-		if necessary until an item is available."""
-		if block:
-			item = self.__db.blpop(key, timeout=timeout)
-		else:
-			item = self.__db.lpop(key)  
-
-		if item:
-			item = item[1]
-		return item
-
-	def get_nowait(self):
-		"""Equivalent to get(False)."""
-		return self.get(False)
 
 if __name__ == '__main__':
 	Consumer.push_task(queue_ip='103.6.222.21', queue_port=4730, queue_name='OCDNQUEUE', data='hello')

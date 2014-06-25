@@ -133,7 +133,7 @@
 	'Description' : 'Check cdn node healthy and recover Bad node's configurations',
 	'TaskList' : ['OCDN_NODE_MONITOR','OCDN_TASK_DISPATCH','OCDN_LOOP_TASK'], 
 	'CurrentTask': 'OCDN_NODE_MONITOR', #当前要执行的Task,
-	'TimeOut' : 600 #10秒,
+	'TimeOut' : 600 #60秒,
 	'RunTimesLimit': #Task运行最大次数
 	{
 		'AlreadyRunTimes': 0,	#当前执行该Task次数
