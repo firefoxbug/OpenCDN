@@ -36,7 +36,7 @@ class JobManager(object):
 			self.Parameters =  self.jobjson['Parameters']
 			self.AlreadyRunTimes = int(self.jobjson['RunTimesLimit']['AlreadyRunTimes'])
 			self.MaxRunTimes = int(self.jobjson['RunTimesLimit']['MaxRunTimes'])
-			if not self.CurrentTask or not self.task_lists :
+			if not self.CurrentTask :
 				return False
 			return True
 		except Exception, e:

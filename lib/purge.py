@@ -57,6 +57,7 @@ class Purge():
 		"""Start a worker loop do tasks"""
 		while True:
 			data = self.queue.get(self.CURRENT_TASK_MODULE)
+			print data
 			current_job_json = JsonCheck.decode(data)
 			if  current_job_json :
 				self.do_task(current_job_json)
@@ -71,34 +72,34 @@ class Purge():
 		jobmanager = JobManager(current_job_json)
 		self.taskid = jobmanager.get_task_id()
 		if not jobmanager.check_job_json_is_ok() :
-			self.logger.error('TaskID:%s Parse job json failed. DATA:%s'%(self.taskid, job.data))
-			return "False"
+			self.logger.error('TaskID:%s Parse job json failed. TaskJson:%s'%(self.taskid, current_job_json))
+			return False
 
 		# Get task and parameters to run
 		task_name, task_args = jobmanager.get_current_task_to_run()
 
 		# Run task
-		if self.purge_node(task_args) == False:
+		if not self.purge_node(task_args) :
 			self.logger.error('TaskID:%s Do task failed.'%(self.taskid))
 			next_task_json = jobmanager.try_run_current_task_again()
 			self.purge_node_failure(next_task_json)
-			return "False"
+			return False
 
 		self.logger.info('TaskID:%s Do task success.'%(self.taskid))
 		# Job is finished
 		if jobmanager.is_job_finished():
 			self.logger.info('TaskID:%s Job is finished'%(self.taskid))
 			self.purge_job_success()
-			return "True"
+			return True
 
 		self.logger.info('TaskID:%s Job is unfinished, still has task to do.'%(self.taskid))
 		# Job still has tasks to dispatch
 		next_task_json = jobmanager.set_next_task_to_run()
 		if not next_task_json :
 			self.logger.error('TaskID:%s:[FAILED] Job is unfished but no more task to do'%(self.taskid))
-			return "False"
+			return False
 		self.put_task_into_queue(next_task_json['CurrentTask'], next_task_json)
-		return "True"
+		return True
 
 	def purge_node(self, task_args):
 		"""run task purge one node cache
@@ -111,13 +112,12 @@ class Purge():
 			purge_url = 'http://%s:%s/ocdn/purge/purge?token=%s&domain=%s'%(item['ip'], item['port'], item['token'], item['domain'])
 			instance_list.append(purge_url)
 		result = self.tasker.run(instance_list)
-#       print result
-		return True
+		return False
 
 	def purge_node_failure(self, next_task_json):
-		"""do with purge one node cache failured, try to dispatch the task again."""
+		"""do with purge one node's cache failured, try to dispatch the task again."""
 		if not next_task_json :
-			error_msg = 'TaskID:%s:[FAILED] Exceed MaxRunTimes, no more task to dispatch'%(self.taskid)
+			error_msg = 'TaskID:%s:[FAILED] Exceed MaxRunTimes, failed to retry dispatch'%(self.taskid)
 			self.logger.error(error_msg)
 		else :
 			info_msg = 'TaskID:%s Try to redo task. AlreadyRunTimes=%s'%(self.taskid, next_task_json['RunTimesLimit']['AlreadyRunTimes'])
@@ -132,6 +132,8 @@ class Purge():
 		"""Put a new task json into task queue"""
 		task_json = json.dumps(task_json)
 		self.queue.put(str(queue_name), task_json)
+		self.logger.info('TaskID:%s Put new task into Module:[%s] '%(self.taskid, 
+			str(queue_name)))
 
 if __name__ == '__main__':
 	purge = Purge()
