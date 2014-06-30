@@ -18,28 +18,41 @@ parent, bindir = os.path.split(os.path.dirname(os.path.abspath(sys.argv[0])))
 if os.path.exists(os.path.join(parent, 'lib')):
 	sys.path.insert(0, os.path.join(parent, 'lib'))
 
-from OcdnQueue import Consumer
 from OcdnLogger import init_logger
+from OcdnJob import JobManager
 
-class ConsumerTest(Consumer):
+class ConsumerTest(JobManager):
 	"""docstring for Consumer"""
-	def __init__(self, queue_ip='103.6.222.21', queue_port=4730):
-		self.task_name = 'CONSUMER'
+	def __init__(self, queue_ip='my.opencdn.cc', queue_port=6379):
+		self.task_name = 'OCDN_PURGE'
 		self.logfile = os.path.join(parent,'logs','%s.log'%(self.task_name))
-		super(ConsumerTest, self).__init__(queue_ip, queue_port, logfile=self.logfile)
-		self.logger = init_logger(logfile=self.logfile, logmodule='CONSUMER_TEST', stdout=True)
+		self.logger = init_logger(logfile=self.logfile, logmodule=self.task_name
+			, stdout=True)
+		super(ConsumerTest, self).__init__(queue_ip, queue_port, self.logger)
 
 	def run(self):
-		self.logger.info("Start work")
-		self.register_task_callback('OCDN_PURGE', self.do_task)
-		self.start_worker()
+		while True:
+			time.sleep(1)
+			if self.get_job_info(self.task_name) :
+				if self.do_task() :
+					self.do_task_succss()
+					self.try_run_next_task()
+				else :
+					self.do_task_failed()
+					self.try_run_current_task_again()
+				
+	def do_task(self):
+		print (self.CurrentTask, self.Parameters, self.jobid)
+		return True
 
-	def do_task(self, gearman_worker, job):
-		data = job.data
-		parameters = json.loads(data)
-		Consumer.push_task(queue_ip='103.6.222.21', queue_port=4730, queue_name='OCDNQUEUE', data=parameters)
-		print parameters
-		return 'True'
+	def do_task_succss(self):
+
+		self.logger.info('JobID:%s Do task success.'%(self.jobid))
+		return True
+
+	def do_task_failed(self):
+		self.logger.error('JobID:%s Do task failed.'%(self.jobid))
+		pass
 
 if __name__ == '__main__':
 	consumer = ConsumerTest()
