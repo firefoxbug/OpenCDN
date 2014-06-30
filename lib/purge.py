@@ -57,7 +57,6 @@ class Purge():
 		"""Start a worker loop do tasks"""
 		while True:
 			data = self.queue.get(self.CURRENT_TASK_MODULE)
-			print data
 			current_job_json = JsonCheck.decode(data)
 			if  current_job_json :
 				self.do_task(current_job_json)
