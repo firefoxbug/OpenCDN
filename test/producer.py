@@ -52,8 +52,8 @@ def purge_test():
 	producer.produce_job_loop('OCDN_PURGE', job2do)
 
 def add_domain_test():
-	TaskName = 'OCDN_PURGE'
-	TaskList = ['OCDN_PURGE','OCDN_PROXY','OCDN_ADD_DNS']
+	TaskName = 'OCDN_DOMAIN'
+	TaskList = ['OCDN_DOMAIN','OCDN_PROXY','OCDN_ADD_DNS']
 	Parameters = []
 	for _ in range(0,10) :
 		Parameters.append({'ip':'192.168.1.1','port':'80','domain':'www.firefoxbug.com','token':'821e57c57e8455e3e809e23df7bb6ce9'})
