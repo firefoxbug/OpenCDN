@@ -7,8 +7,10 @@
 
 """Run a job's tasklist in order. 
 
-JobManagero: contorl job run 
+JobManager: contorl job run 
 """
+import os
+import sys
 import time
 import random
 from OcdnQueue import OcdnQueue
@@ -16,17 +18,17 @@ try:
 	import json
 except Exception, e:
 	import simplejson as json
+from OcdnLogger import init_logger
+
+parent, bindir = os.path.split(os.path.dirname(os.path.abspath(sys.argv[0])))
+if os.path.exists(os.path.join(parent, 'lib')):
+	sys.path.insert(0, os.path.join(parent, 'lib'))
 
 class JobManager(object):
 	"""Manager a job's tasks run 
 
 	"""
-	def __init__(self, queue_ip='my.opencdn.cc', queue_port=6379, logger=None):
-		self.queue_ip = queue_ip
-		self.queue_port = queue_port
-		
-		self.logger = logger
-
+	def __init__(self):
 		self.jobjson = None
 		self.task_lists = None
 		self.CurrentTask = None
@@ -52,7 +54,7 @@ class JobManager(object):
 	def get_job_from_queue(self, queue_name):
 		"""Get job description json from redis queue"""
 		self.jobid = self.get_job_id()
-		self.logger.info("Create a job ID:%s"%self.jobid)
+		self.logger.info("JobID:%s Create a new job..."%self.jobid)
 		current_job_json = None
 		try :
 			data = self.queue.get(queue_name)
@@ -71,10 +73,14 @@ class JobManager(object):
 
 	def put_job_into_queue(self, queue_name, task_json):
 		"""Put a new task json into task queue"""
-		task_json = self.encode(task_json)
-		self.queue.put(str(queue_name), task_json)
-		self.logger.info('JobID:%s Put new task into Module:[%s] '%(self.jobid, 
-			str(queue_name)))
+		try:
+			task_json = self.encode(task_json)
+			self.queue.put(str(queue_name), task_json)
+			self.logger.info('JobID:%s Put new job into Module:[%s] '%(self.jobid, 
+				str(queue_name)))
+		except Exception, e:
+			self.logger.error("JobID:%s Put new job json into queue:%s failed. %s"%(
+				self.jobid, queue_name, str((e))))
 
 	def check_job_json_is_ok(self):
 		"""Check the job json file syntax is ok or not
@@ -140,7 +146,7 @@ class JobManager(object):
 
 		self.jobjson['RunTimesLimit']['AlreadyRunTimes'] = self.AlreadyRunTimes + 1
 
-		info_msg = 'JobID:%s Try to redo task. AlreadyRunTimes=%s'%(self.jobid, 
+		info_msg = 'JobID:%s Try to dispatch task again. AlreadyRunTimes=%s'%(self.jobid, 
 			self.jobjson['RunTimesLimit']['AlreadyRunTimes'])
 		self.logger.info(info_msg)
 
@@ -182,7 +188,7 @@ class JobManager(object):
 		Return True : mark the job failured
 		Return False : the job will be dispatched again
 		"""
-		if self.AlreadyRunTimes >=  self.MaxRunTimes:
+		if self.AlreadyRunTimes >=  self.MaxRunTimes-1:
 			return True
 		return False
 
@@ -201,6 +207,36 @@ class JobManager(object):
 		except Exception, e:
 			raise e
 			return None
+
+class JobScheduler(JobManager):
+	"""JobScheduler is a framework for opencdn dispatch job"""
+	def __init__(self):
+		self.queue_ip='my.opencdn.cc'
+		self.queue_port=6379
+		self.logfile = os.path.join(parent,'logs','%s.log'%(self.CURRENT_TASK_MODULE))
+		self.logger = init_logger(logfile=self.logfile, logmodule=self.CURRENT_TASK_MODULE
+			, stdout=True)
+		super(JobScheduler, self).__init__()
+		
+	def start_worker(self):
+		"""Start a worker loop do tasks
+		
+		run a task may cause 3 results
+		1. task excuted failed
+		2. task excuted success and the job fished
+		3. task excuted success but the job unfished
+		
+		"""
+		while True:
+			time.sleep(1)
+			if self.get_job_info(self.CURRENT_TASK_MODULE) :
+				self.logger.info('JobID:%s Try to do task...'%self.jobid)
+				if self.do_task() :
+					self.do_task_succss()
+					self.try_run_next_task()
+				else :
+					self.do_task_failed()
+					self.try_run_current_task_again()
 
 class OcdnJSON(object):
 	"""Create job json description"""
