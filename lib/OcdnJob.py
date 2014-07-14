@@ -7,7 +7,7 @@
 
 """Run a job's tasklist in order. 
 
-JobManager: contorl job run 
+JobManager: control job run 
 """
 import os
 import sys
@@ -25,7 +25,7 @@ if os.path.exists(os.path.join(parent, 'lib')):
 	sys.path.insert(0, os.path.join(parent, 'lib'))
 
 class JobManager(object):
-	"""Manager a job's tasks run 
+	"""Manager a job's tasks to run 
 
 	"""
 	def __init__(self):
@@ -225,7 +225,6 @@ class JobScheduler(JobManager):
 		1. task excuted failed
 		2. task excuted success and the job fished
 		3. task excuted success but the job unfished
-		
 		"""
 		while True:
 			time.sleep(1)

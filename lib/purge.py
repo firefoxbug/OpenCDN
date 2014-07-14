@@ -36,7 +36,7 @@ class Purge(JobScheduler):
 	4. If task done success but job is unfinished then put next running task into queue
 	"""
 	def __init__(self):
-		self.CURRENT_TASK_MODULE = 'OCDN_DOMAIN'
+		self.CURRENT_TASK_MODULE = 'OCDN_PURGE'
 		super(Purge, self).__init__()
 		self.tasker = RunTask()
 
@@ -62,7 +62,6 @@ class Purge(JobScheduler):
 		"""The purge job is excuted successfully"""
 		self.logger.info('JobID:%s Do task success.'%(self.jobid))
 		return True
-
 
 if __name__ == '__main__':
 	purge = Purge()
